@@ -1,0 +1,157 @@
+KUBERNETES --K8S    
+
+-> Kubernetes is also known as 'k8s'. which means a helmsman.
+
+-> Kubernetes is an open-source platform designed by Google in 2014.
+
+-> It is used to automate the deployment, scaling, and operations of the container-based applications across 
+
+-> It is  designed for managing the containerized apps using different methods which provide the scalability, predictability, and high availability.
+
+-> This is enhanced version of Borg which was developed at Google to manage both long running processes and batch jobs,
+
+-> it can run application on clusters of physical and virtual machine infrastructure and also cloud.
+
+
+---Basic Components of k8s
+
+- POD:
+  It is the smallest and simplest basic unit of Execution and deployable Kubernetes application.
+
+- NODE:
+  A node is nothing but a single host. Node is Machine  in Kubernetes, may be either a virtual or a physical machine, depending on the cluster and each Node managed by master node Control manager.
+
+- SERVICE:
+  In a Kubernetes is a logical set of pods, which works together. With the help of services,
+
+
+---Kubernetes Architecture :
+
+--Components:
+
+- Master node Components 
+
+*etcd:
+   It stores the configuration information of Nodes in the Cluster. It is  key-value store that's used as the standard storage system for Kubernetes.
+
+*Api server:
+   The front end of the Kubernetes control plane, which is how users interact with their Kubernetes cluster.
+
+*Controller Manager:
+   it can be considered as a daemon, which runs in nonterminating loop and is responsible for collecting and sending information to API server. Also Handle  the nodes
+
+*Scheduler: 
+   It is allocation pods to nodes according to Load Balancer. 
+
+-- Worker Node:
+
+*Docker: To creating Containers to application.
+    
+* kubelet-service:
+   it is node level agent to communicate with the master node Controller and etcd to executing containerized application through out the cluster
+
+*Kubernetes Proxy Services:
+   it is runs in each node to enable Network Communication between nodes and Pods  
+
+-------Installation of Kubernetes on ubuntu ----------
+
+---Step 1->   we have to update the dependencies of a machine  using below commands.
+
+# sudo apt-get update  
+
+
+
+---Step 2-> Network configuration 
+To manually enable IPv4 packet forwarding:
+
+
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.ipv4.ip_forward = 1
+EOF
+
+sudo sysctl --system
+
+--> Verify that net.ipv4.ip_forward is set to 1 with:
+
+sysctl net.ipv4.ip_forward
+
+
+---Step 3->   Install Docker with the following command
+
+sudo apt update -y
+sudo apt install docker.io -y
+
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+sudo systemctl enable docker
+
+
+
+---Step 4-> Use the curl command to download the key and store it in a safe place (default is /etc/apt/keyrings/:
+
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+
+-->  To add the Kubernetes repository to your machine list, enter this command
+
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+
+
+sudo apt-get update && apt-get install -y apt-transport-https ca-certificates curl
+
+sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates curl gpg
+
+sudo apt-get update -y
+
+
+---Step 5->  After we install the dependencies of K8S, next Install K8S
+
+sudo apt install -y kubeadm kubectl kubelet
+sudo apt-mark hold kubelet kubeadm kubectl
+systemctl enable kubelet
+
+--> Configuring CRI runtime
+
+wget https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.14/cri-dockerd_0.3.14.3-0.ubuntu-jammy_amd64.deb
+sudo dpkg -i cri-dockerd_0.3.14.3-0.ubuntu-jammy_amd64.deb
+
+above all steps are same to all Worker Nodes and Master Node 
+-----------------------------------------------------------------------------------
+after only Master Node 
+
+kubeadm init --pod-network-cidr=190.168.0.0/16 --cri-socket unix:///var/run/cri-dockerd.sock --ignore-preflight-errors=NumCPU
+
+
+kubeadm init --pod-network-cidr=190.168.0.0/16 --ignore-preflight-errors=NumCPU
+
+ --> To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Alternatively, if you are the root user, you can run:
+
+  export KUBECONFIG=/etc/kubernetes/admin.conf
+
+You should now deploy a pod network to the cluster.
+
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+^
+|
+|
+|
+kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/canal.yaml
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+
+
+kubectl get pods --all-namesspaces
+ 
+-------------------------------------------------------------------------------------
+
+

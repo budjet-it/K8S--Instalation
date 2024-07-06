@@ -1,0 +1,108 @@
+K8S Services :
+
+-> A Kubernetes service is a logical abstraction for a deployed group of pods in a cluster
+
+-> A service is responsible for exposing an interface to those pods, which enables network access from either within the cluster or between external processes and the service.
+
+-> If you use a Deployment to run your app, that Deployment can create and destroy Pods dynamically. From one moment to the next, you don't know how many of those Pods are working and healthy; you might not even know what those healthy Pods are named. Kubernetes Pods are created and destroyed to match the desired state of your cluster.
+
+-> A Service is an object (the same way that a Pod or a ConfigMap is an object). You can create, view or modify Service definitions using the Kubernetes API. Usually you use a tool such as kubectl to make those API calls for you.
+
+--->>Main types of Kubernetes services are 
+
+ClusterIP. Exposes a service which is only accessible from within the cluster.
+NodePort. Exposes a service via a static port on each node’s IP.
+LoadBalancer. Exposes the service via the cloud provider’s load balancer.
+
+INGRESS---
+
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.1/deploy/static/provider/cloud/deploy.yaml
+
+
+--> nano demo1-deployment.yml
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: demo1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+
+
+-----------------------------------------------
+
+--> nano demo1-service.yml
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: demo1
+spec:
+  type: LoadBalancer
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 80
+
+---------------------------------------------------------
+
+kubectl create namespace demo1
+
+kubectl apply -f demo1-deployment.yml
+
+kubectl apply -f demo1-service.yml
+
+kubectl port-forward service/nginx-service 8080:8080 -n demo1
+
+
+--> nano demo1-ingress.yml
+
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+  namespace: demo1
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-service
+            port:
+              number: 8080
+
+
+
+----------------------------------------------
+kubectl apply -f demo1-ingress.yml
+
+kubectl -n ingress-nginx get svc ingress-nginx-controller
+
+
+
+
